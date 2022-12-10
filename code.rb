@@ -93,7 +93,7 @@ class Album
 
   def organize
     @photos.each_with_index { |photo, index| add_to_city_collection(photo, index) }
-    @city_collection.each_with_index { |photos, city| }
+    @city_collection.map { |city, photos | { city => sort_photos_by_date(photos) } }.reduce(:merge)
   end
 
   protected
@@ -101,5 +101,9 @@ class Album
   def add_to_city_collection(photo, index)
     @city_collection[photo[:city]] ||= []
     @city_collection[photo[:city]] << photo.except(:city).merge(index: index)
+  end
+
+  def sort_photos_by_date(photos)
+    photos.sort_by { |photo| photo[:date] }
   end
 end
