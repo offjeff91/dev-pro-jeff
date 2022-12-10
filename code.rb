@@ -3,14 +3,16 @@ def solution(s)
   Album.new(photos).organize
 end
 
+# For simplicity in the correction all the ruby classes were created in this file
+
 class List
-  FORMAT = [
+  FORMAT_LIST = [
     { name: :image_file, type: :file_name },
     { name: :city, type: :default },
     { name: :date, type: :date_time }
-  ]
+  ].freeze
 
-  def initialize(input, key_value = KeyValue.new(FORMAT))
+  def initialize(input, key_value = KeyValue.new(FORMAT_LIST))
     @input = input
     @key_value = key_value
   end
@@ -39,11 +41,47 @@ class List
 end
 
 class KeyValue
-  def initialize(format)
-    @format = format
+  require 'date'
+  def initialize(format_list)
+    @format_list = format_list
   end
+
   def build(value, index)
-    { @format[index][:name] => value }
+    { key(index) => build_value(value, index) }
+  end
+
+  protected
+
+  def key(index)
+    @format_list[index][:name]
+  end
+
+  def build_value(value, index)
+    return date_time_value(value) if date_time?(index)
+    return file_name_value(value) if file_name?(index)
+
+    value
+  end
+
+  def type(index)
+    @format_list[index][:type]
+  end
+
+  def date_time?(index)
+    type(index) == :date_time
+  end
+
+  def date_time_value(value)
+    DateTime.parse(value)
+  end
+
+  def file_name?(index)
+    type(index) == :file_name
+  end
+
+  def file_name_value(value)
+    name, extension = value.split('.')
+    { name: name, extension: extension }
   end
 end
 
@@ -59,6 +97,7 @@ class Album
   end
 
   protected
+
   def add_to_city_collection(photo)
     @city_collection[photo[:city]] ||= []
     @city_collection[photo[:city]] << photo.except(:city)
