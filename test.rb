@@ -14,7 +14,7 @@ e.png, Krakow, 2016-01-02 09:49:09
 f.png, Krakow, 2016-01-02 10:55:32
 g.jpg, Krakow, 2016-02-29 22:13:11"
 
-solution(s)
+puts solution(s)
 
 # Krakow02.jpg
 # London1.png
