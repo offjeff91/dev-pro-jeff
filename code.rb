@@ -92,14 +92,14 @@ class Album
   end
 
   def organize
-    @photos.each { |photo| add_to_city_collection(photo) }
-    @city_collection
+    @photos.each_with_index { |photo, index| add_to_city_collection(photo, index) }
+    @city_collection.each_with_index { |photos, city| }
   end
 
   protected
 
-  def add_to_city_collection(photo)
+  def add_to_city_collection(photo, index)
     @city_collection[photo[:city]] ||= []
-    @city_collection[photo[:city]] << photo.except(:city)
+    @city_collection[photo[:city]] << photo.except(:city).merge(index: index)
   end
 end
