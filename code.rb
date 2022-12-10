@@ -1,16 +1,18 @@
 def solution(s)
-  # format = [ :image_file, :city, :date]
-  # data = s.split("\n").map { |line| line.split(', ').each_with_index.map { |value, index| { format[index] => value } }.reduce(:merge) }
   photos = List.new(s).parse
-  x = Album.new(photos).organize
-  # write response for data
+  Album.new(photos).organize
 end
 
 class List
-  FORMAT = [:image_file, :city, :date]
+  FORMAT = [
+    { name: :image_file, type: :file_name },
+    { name: :city, type: :default },
+    { name: :date, type: :date_time }
+  ]
 
-  def initialize(input)
+  def initialize(input, key_value = KeyValue.new(FORMAT))
     @input = input
+    @key_value = key_value
   end
 
   def parse
@@ -24,15 +26,24 @@ class List
   end
 
   def parse_line(line)
-    values(line).map { |value, index| build_hash(value, index) }.reduce(:merge)
+    values(line).map { |value, index| build_key_value(value, index) }.reduce(:merge)
   end
 
   def values(line)
     line.split(', ').each_with_index
   end
 
-  def build_hash(value, index)
-    { List::FORMAT[index] => value }
+  def build_key_value(value, index)
+    @key_value.build(value, index)
+  end
+end
+
+class KeyValue
+  def initialize(format)
+    @format = format
+  end
+  def build(value, index)
+    { @format[index][:name] => value }
   end
 end
 
