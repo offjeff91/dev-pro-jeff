@@ -9,33 +9,41 @@ end
 # For simplicity in the correction all the ruby classes were created into this same file
 
 class PhotoList
-  FORMAT_LIST = [
-    { name: :image_file, type: :file_name },
-    { name: :city, type: :default },
-    { name: :date, type: :date_time }
-  ].freeze
-
-  def initialize(input, key_value = KeyValue.new(FORMAT_LIST))
+  def initialize(input, photo_item = nil)
     @input = input
-    @key_value = key_value
+    @photo_item = photo_item || PhotoList::PhotoItem.new
   end
 
   def parse
-    lines.map { |line| parse_line(line) }
+    items.map &method(:parse_item)
   end
 
   protected
 
-  def lines
+  def items
     @input.split("\n")
   end
 
-  def parse_line(line)
-    values(line).map { |value, index| build_key_value(value, index) }.reduce(:merge)
+  def parse_item(item)
+    @photo_item.parse(item)
+  end
+end
+
+class PhotoList::PhotoItem
+  def initialize(key_value = nil)
+    @key_value = key_value || KeyValue.new([
+                                             { name: :image_file, type: :file_name },
+                                             { name: :city, type: :default },
+                                             { name: :date, type: :date_time }
+                                           ])
   end
 
-  def values(line)
-    line.split(', ').each_with_index
+  def parse(item)
+    values(item).map(&method(:build_key_value)).reduce(:merge)
+  end
+
+  def values(item)
+    item.split(', ').each_with_index
   end
 
   def build_key_value(value, index)
@@ -102,9 +110,7 @@ class Album
   protected
 
   def group_photos_by_city
-    @photos.each_with_index do |photo, input_index|
-      add_to_city_group(photo, input_index)
-    end
+    @photos.each_with_index(&method(:add_to_city_group))
   end
 
   def add_to_city_group(photo, input_index)
@@ -113,13 +119,15 @@ class Album
   end
 
   def sort_photos_by_date_within_group
-    @city_groups.map { |city, photos| { city => organize_group(photos) } }.reduce(:merge)
+    @city_groups.map(&method(:organize_group)).reduce(:merge)
   end
 
-  def organize_group(photos)
-    sort_photos_by_date(photos).map do |photo, group_index|
-      photo.merge(group_index: group_index)
-    end
+  def organize_group(city, photos)
+    { city => sort_photos_by_date(photos).map(&method(:photo_with_group_index)) }̦
+  end
+
+  def photo_with_group_index(photo, group_index)
+    photo.merge(group_index: group_index)
   end
 
   def sort_photos_by_date(photos)
@@ -128,12 +136,13 @@ class Album
 end
 
 class AlbumDisplay
-  def initialize(album)
+  def initialize(album, photo_display = nil)
     @album = album
+    @photo_display = photo_display || AlbumDisplay::PhotoDisplay.new(@album)
   end
 
   def present
-    photos.sort_by { |photo| photo[:input_index] }.map { |photo| show(photo) }
+    photos.sort_by { |photo| photo[:input_index] }.map(&method(:show))
   end
 
   def photos
@@ -143,10 +152,40 @@ class AlbumDisplay
   protected
 
   def show(photo)
-    "#{photo[:city]}#{photo_index(photo)}.#{photo[:image_file][:extension]}"
+    @photo_display.present(photo)
+  end
+end
+
+class AlbumDisplay::PhotoDisplay
+  def initialize(album, index_display = nil)
+    @album = album
+    @index_display = index_display || AlbumDisplay::PhotoIndexDisplay.new(@album)
   end
 
-  def photo_index(photo)
+  def present(photo)
+    @photo = photo
+    "#{city}#{photo_index}.#{file_extension}"
+  end
+
+  def city
+    @photo[:city]
+  end
+
+  def photo_index
+    @index_display.present(@photo)
+  end
+
+  def file_extension
+    @photo[:image_file][:extension]
+  end
+end
+
+class AlbumDisplay::PhotoIndexDisplay
+  def initialize(album)
+    @album = album
+  end
+
+  def present(photo)
     length = maximum_index_length(photo)
     index = current_index(photo)
     index.rjust(length, '0')
