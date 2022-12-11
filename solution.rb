@@ -161,7 +161,7 @@ end
 class AlbumDisplay::PhotoDisplay
   def initialize(album, index_display = nil)
     @album = album
-    @index_display = index_display || AlbumDisplay::PhotoIndexDisplay.new(@album)
+    @index_display = index_display || AlbumDisplay::PhotoIndexDisplay.new
   end
 
   def present(photo)
@@ -176,7 +176,7 @@ class AlbumDisplay::PhotoDisplay
   end
 
   def photo_index
-    @index_display.present(@photo)
+    @index_display.present(@photo, @album[@photo[:city]].size)
   end
 
   def file_extension
@@ -185,12 +185,8 @@ class AlbumDisplay::PhotoDisplay
 end
 
 class AlbumDisplay::PhotoIndexDisplay
-  def initialize(album)
-    @album = album
-  end
-
-  def present(photo)
-    length = maximum_index_length(photo)
+  def present(photo, group_size)
+    length = maximum_index_length(group_size)
     index = current_index(photo)
     index.rjust(length, '0')
   end
@@ -201,7 +197,7 @@ class AlbumDisplay::PhotoIndexDisplay
     (photo[:group_index] + 1).to_s
   end
 
-  def maximum_index_length(photo)
-    @album[photo[:city]].size.to_s.length
+  def maximum_index_length(group_size)
+    group_size.to_s.length
   end
 end
