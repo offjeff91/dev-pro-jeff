@@ -15,7 +15,7 @@ class PhotoList
   end
 
   def parse
-    items.map &method(:parse_item)
+    items.map(&method(:parse_item))
   end
 
   protected
@@ -39,10 +39,12 @@ class PhotoList::PhotoItem
   end
 
   def parse(item)
-    values(item).map(&method(:build_key_value)).reduce(:merge)
+    item_values(item).map(&method(:build_key_value)).reduce(:merge)
   end
 
-  def values(item)
+  protected
+
+  def item_values(item)
     item.split(', ').each_with_index
   end
 
@@ -119,19 +121,11 @@ class Album
   end
 
   def sort_photos_by_date_within_group
-    @city_groups.map(&method(:organize_group)).reduce(:merge)
+    @city_groups.map(&method(:city_group_with_photos_sorted)).reduce(:merge)
   end
 
-  def organize_group(city, photos)
-    { city => sort_photos_by_date(photos).map(&method(:photo_with_group_index)) }̦
-  end
-
-  def photo_with_group_index(photo, group_index)
-    photo.merge(group_index: group_index)
-  end
-
-  def sort_photos_by_date(photos)
-    photos.sort_by { |photo| photo[:date] }.each_with_index
+  def city_group_with_photos_sorted(city, photos)
+    { city => photos.sort_by { |photo| photo[:date] } }
   end
 end
 
@@ -142,14 +136,26 @@ class AlbumDisplay
   end
 
   def present
-    photos.sort_by { |photo| photo[:input_index] }.map(&method(:show))
-  end
-
-  def photos
-    @album.values.flatten
+    all_photos.sort_by { |x| x[:input_index] }.map(&method(:show))
   end
 
   protected
+
+  def all_photos
+    photo_groups.map(&method(:photos_with_group_index)).flatten
+  end
+
+  def photo_groups
+    @album.values
+  end
+
+  def photos_with_group_index(photos)
+    photos.each_with_index.map(&method(:photo_with_group_index))
+  end
+
+  def photo_with_group_index(photo, group_index)
+    photo.merge(group_index: group_index)
+  end
 
   def show(photo)
     @photo_display.present(photo)
@@ -166,6 +172,8 @@ class AlbumDisplay::PhotoDisplay
     @photo = photo
     "#{city}#{photo_index}.#{file_extension}"
   end
+
+  protected
 
   def city
     @photo[:city]
@@ -190,6 +198,8 @@ class AlbumDisplay::PhotoIndexDisplay
     index = current_index(photo)
     index.rjust(length, '0')
   end
+
+  protected
 
   def current_index(photo)
     (photo[:group_index] + 1).to_s
