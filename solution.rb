@@ -31,11 +31,11 @@ end
 
 class PhotoList::PhotoItem
   def initialize(key_value = nil)
-    @key_value = key_value || KeyValue.new([
-                                             { name: :image_file, type: :file_name },
-                                             { name: :city, type: :default },
-                                             { name: :date, type: :date_time }
-                                           ])
+    @key_value = key_value || PhotoList::KeyValue.new([
+                                                        { name: :image_file, type: :file_name },
+                                                        { name: :city, type: :default },
+                                                        { name: :date, type: :date_time }
+                                                      ])
   end
 
   def parse(item)
@@ -53,7 +53,7 @@ class PhotoList::PhotoItem
   end
 end
 
-class KeyValue
+class PhotoList::KeyValue
   require 'date'
   def initialize(format_list)
     @format_list = format_list
