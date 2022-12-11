@@ -150,11 +150,7 @@ class AlbumDisplay
   end
 
   def photos_with_group_index(photos)
-    photos.each_with_index.map(&method(:photo_with_group_index))
-  end
-
-  def photo_with_group_index(photo, group_index)
-    photo.merge(group_index: group_index)
+    photos.each_with_index.map { |photo, group_index| photo.merge(group_index: group_index) }
   end
 
   def show(photo)
