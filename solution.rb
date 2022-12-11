@@ -132,7 +132,7 @@ end
 class AlbumDisplay
   def initialize(album, photo_display = nil)
     @album = album
-    @photo_display = photo_display || AlbumDisplay::PhotoDisplay.new(@album)
+    @photo_display = photo_display || AlbumDisplay::PhotoDisplay.new
   end
 
   def present
@@ -142,15 +142,17 @@ class AlbumDisplay
   protected
 
   def all_photos
-    photo_groups.map(&method(:photos_with_group_index)).flatten
+    photo_groups.map(&method(:photos_with_group_data)).flatten
   end
 
   def photo_groups
     @album.values
   end
 
-  def photos_with_group_index(photos)
-    photos.each_with_index.map { |photo, group_index| photo.merge(group_index: group_index) }
+  def photos_with_group_data(photos)
+    photos.each_with_index.map do |photo, group_index|
+      photo.merge(group_index: group_index).merge(group_size: photos.length)
+    end
   end
 
   def show(photo)
@@ -159,8 +161,7 @@ class AlbumDisplay
 end
 
 class AlbumDisplay::PhotoDisplay
-  def initialize(album, index_display = nil)
-    @album = album
+  def initialize(index_display = nil)
     @index_display = index_display || AlbumDisplay::PhotoIndexDisplay.new
   end
 
@@ -176,7 +177,7 @@ class AlbumDisplay::PhotoDisplay
   end
 
   def photo_index
-    @index_display.present(@photo, @album[@photo[:city]].size)
+    @index_display.present(@photo)
   end
 
   def file_extension
@@ -185,8 +186,8 @@ class AlbumDisplay::PhotoDisplay
 end
 
 class AlbumDisplay::PhotoIndexDisplay
-  def present(photo, group_size)
-    length = maximum_index_length(group_size)
+  def present(photo)
+    length = maximum_index_length(photo)
     index = current_index(photo)
     index.rjust(length, '0')
   end
@@ -197,7 +198,7 @@ class AlbumDisplay::PhotoIndexDisplay
     (photo[:group_index] + 1).to_s
   end
 
-  def maximum_index_length(group_size)
-    group_size.to_s.length
+  def maximum_index_length(photo)
+    photo[:group_size].to_s.length
   end
 end
