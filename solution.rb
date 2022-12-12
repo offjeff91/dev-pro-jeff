@@ -125,7 +125,11 @@ class Album
   end
 
   def city_group_with_photos_sorted(city, photos)
-    { city => photos.sort_by { |photo| photo[:date] } }
+    { city => photos.uniq { |photo| photo[:date] }.sort_by { |photo| photo[:date] } }
+  end
+
+  def photo_date(photo)
+    photo[:date]
   end
 end
 
