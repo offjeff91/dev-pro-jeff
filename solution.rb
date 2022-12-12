@@ -21,7 +21,7 @@ class PhotoList
   protected
 
   def items
-    @input.split("\n")
+    @input.split("\n").slice(0, 99)
   end
 
   def parse_item(item)
