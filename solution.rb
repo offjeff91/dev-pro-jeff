@@ -58,11 +58,11 @@ class PhotoList::PhotoItem
   end
 
   def item_values(item)
-    item.split(', ').each_with_index
+    item.split(',').each_with_index
   end
 
   def build_property(value, index)
-    @property.build(value, index)
+    @property.build(value.strip, index)
   end
 end
 
