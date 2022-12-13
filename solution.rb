@@ -67,7 +67,6 @@ class PhotoList::PhotoItem
 end
 
 class PhotoList::Property
-  require 'date'
   def initialize(format = nil, factory = nil)
     @format = format || PhotoList::Format.new
     @factory = factory || PhotoList::Property::Factory.new
@@ -101,6 +100,7 @@ class PhotoList::Property::Factory
 end
 
 class PhotoList::Property::DateTime
+  require 'date'
   def build(value)
     DateTime.parse(value)
   end
