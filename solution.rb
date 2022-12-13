@@ -30,13 +30,13 @@ class PhotoList
 end
 
 class PhotoList::PhotoItem
-  def initialize(key_value = nil, format = nil)
+  def initialize(property = nil, format = nil)
     @format = format || PhotoList::Format.new
-    @key_value = key_value || PhotoList::KeyValue.new(@format)
+    @property = property || PhotoList::Property.new(@format)
   end
 
   def parse(item)
-    item_values(item).map(&method(:build_key_value)).reduce(:merge)
+    item_values(item).map(&method(:build_property)).reduce(:merge)
   end
 
   protected
@@ -45,12 +45,12 @@ class PhotoList::PhotoItem
     item.split(', ').each_with_index
   end
 
-  def build_key_value(value, index)
-    @key_value.build(value, index)
+  def build_property(value, index)
+    @property.build(value, index)
   end
 end
 
-class PhotoList::KeyValue
+class PhotoList::Property
   require 'date'
   def initialize(format)
     @format = format
