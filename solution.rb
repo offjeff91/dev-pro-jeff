@@ -15,17 +15,13 @@ class PhotoList
   end
 
   def parse
-    items.map(&method(:parse_item))
+    items.map{ |item| @photo_item.build(item) }
   end
 
   protected
 
   def items
     @input.split("\n").slice(0, 99)
-  end
-
-  def parse_item(item)
-    @photo_item.parse(item)
   end
 end
 
@@ -35,7 +31,7 @@ class PhotoList::PhotoItem
     @property = property || PhotoList::Property.new(@format)
   end
 
-  def parse(item)
+  def build(item)
     item_values(item).map(&method(:build_property)).reduce(:merge)
   end
 
@@ -147,14 +143,14 @@ class Album
   end
 
   def sort_photos_by_date_within_group
-    @city_groups.map(&method(:city_group_with_photos_sorted)).reduce(:merge)
+    @city_groups.map(&method(:fit_group)).reduce(:merge)
   end
 
-  def city_group_with_photos_sorted(city, photos)
-    { city => photos.uniq { |photo| photo[:date] }.sort_by { |photo| photo[:date] } }
+  def fit_group(city, photos)
+    { city => photos.uniq(&method(:date)).sort_by(&method(:date)) }
   end
 
-  def photo_date(photo)
+  def date(photo)
     photo[:date]
   end
 end
@@ -166,7 +162,11 @@ class AlbumDisplay
   end
 
   def present
-    all_photos.sort_by { |x| x[:input_index] }.map(&method(:show))
+    all_photos.sort_by(&method(:input_index)).map(&method(:show))
+  end
+
+  def input_index(photo)
+    photo[:input_index]
   end
 
   protected
