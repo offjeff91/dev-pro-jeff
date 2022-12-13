@@ -52,8 +52,11 @@ end
 
 class PhotoList::Property
   require 'date'
-  def initialize(format)
+  def initialize(format, date_time = nil, file_name = nil, default = nil)
     @format = format
+    @date_time = date_time || PhotoList::Property::DateTime.new
+    @file_name = file_name || PhotoList::Property::FileName.new
+    @default = default || PhotoList::Property::Default.new
   end
 
   def build(value, index)
@@ -67,19 +70,29 @@ class PhotoList::Property
   end
 
   def build_value(value, index)
-    return date_time(value) if @format.date_time?(index)
-    return file_name(value) if @format.file_name?(index)
+    return @date_time.build(value) if @format.date_time?(index)
+    return @file_name.build(value) if @format.file_name?(index)
 
-    value
+    @default.build(value)
   end
+end
 
-  def date_time(value)
+class PhotoList::Property::DateTime
+  def build(value)
     DateTime.parse(value)
   end
+end
 
-  def file_name(value)
+class PhotoList::Property::FileName
+  def build(value)
     name, extension = value.split('.')
     { name: name, extension: extension }
+  end
+end
+
+class PhotoList::Property::Default
+  def build(value)
+    value
   end
 end
 
