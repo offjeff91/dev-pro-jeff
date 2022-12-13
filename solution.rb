@@ -45,8 +45,8 @@ class PhotoList::PhotoItem
 
   def build_item(item)
     build_object(item)
-  rescue PhotoList::ValidationError => validation_error
-    invalid_response(validation_error)
+  rescue PhotoList::ValidationError => e
+    invalid_response(e)
   end
 
   def build_object(item)
@@ -108,11 +108,19 @@ end
 
 class PhotoList::Property::FileName
   def build(value)
+    validate(value)
     name, extension = value.split('.')
-    raise PhotoList::ValidationError::FileNameFormat unless value.split('.').size == 2
-    raise PhotoList::ValidationError::OnlyLetterOnFileNameError unless /^[A-z]+$/.match?(name)
-    raise PhotoList::ValidationError::ValidFileNameExtensionError unless ["jpg", "png" ,"jpeg"].include?(extension)
     { name: name, extension: extension }
+  end
+
+  protected
+
+  def validate(value)
+    parts = value.split('.')
+    name, extension = parts
+    raise PhotoList::ValidationError::FileNameFormat unless parts.size == 2
+    raise PhotoList::ValidationError::OnlyLetterOnFileNameError unless /^[A-z]+$/.match?(name)
+    raise PhotoList::ValidationError::ValidFileNameExtensionError unless %w[jpg png jpeg].include?(extension)
   end
 end
 
@@ -230,6 +238,7 @@ class AlbumDisplay
 
   def show(photo)
     return "Error: #{photo[:validation_message]}" if photo[:invalid?]
+
     @photo_display.present(photo)
   end
 end
