@@ -15,7 +15,7 @@ class PhotoList
   end
 
   def parse
-    items.map{ |item| @photo_item.build(item) }
+    items.map { |item| @photo_item.build(item) }
   end
 
   protected
@@ -48,11 +48,9 @@ end
 
 class PhotoList::Property
   require 'date'
-  def initialize(format, date_time = nil, file_name = nil, default = nil)
+  def initialize(format, factory = nil)
     @format = format
-    @date_time = date_time || PhotoList::Property::DateTime.new
-    @file_name = file_name || PhotoList::Property::FileName.new
-    @default = default || PhotoList::Property::Default.new
+    @factory = factory || PhotoList::Property::Factory.new
   end
 
   def build(value, index)
@@ -66,10 +64,28 @@ class PhotoList::Property
   end
 
   def build_value(value, index)
-    return @date_time.build(value) if @format.date_time?(index)
-    return @file_name.build(value) if @format.file_name?(index)
+    return factory(:date_time).build(value) if @format.date_time?(index)
+    return factory(:file_name).build(value) if @format.file_name?(index)
 
-    @default.build(value)
+    factory(:default).build(value)
+  end
+
+  def factory(type)
+    @factory.send(type)
+  end
+end
+
+class PhotoList::Property::Factory
+  def date_time
+    PhotoList::Property::DateTime.new
+  end
+
+  def file_name
+    PhotoList::Property::FileName.new
+  end
+
+  def default
+    PhotoList::Property::Default.new
   end
 end
 
