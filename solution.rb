@@ -107,14 +107,6 @@ class PhotoList::Format
     FORMAT_LIST[index][:type]
   end
 
-  def date_time?(index)
-    type(index) == :date_time
-  end
-
-  def file_name?(index)
-    type(index) == :file_name
-  end
-
   def name(index)
     FORMAT_LIST[index][:name]
   end
