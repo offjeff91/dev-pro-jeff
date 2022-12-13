@@ -109,6 +109,7 @@ end
 class PhotoList::Property::FileName
   def build(value)
     name, extension = value.split('.')
+    raise PhotoList::ValidationError::FileNameFormat unless value.split('.').size == 2
     raise PhotoList::ValidationError::OnlyLetterOnFileNameError unless /^[A-z]+$/.match?(name)
     raise PhotoList::ValidationError::ValidFileNameExtensionError unless ["jpg", "png" ,"jpeg"].include?(extension)
     { name: name, extension: extension }
@@ -148,6 +149,12 @@ end
 class PhotoList::ValidationError::ValidFileNameExtensionError < PhotoList::ValidationError
   def message
     'allowed extensions: "jpg", "png" or "jpeg"'
+  end
+end
+
+class PhotoList::ValidationError::FileNameFormat < PhotoList::ValidationError
+  def message
+    'file name expects <name>.<extension> format'
   end
 end
 
