@@ -1,12 +1,11 @@
 # frozen_string_literal: true
 
+# For simplicity in the correction all the ruby classes were created into this same file
 def solution(s)
   photos = PhotoList.new(s).parse
   album = Album.new(photos).organize
   AlbumDisplay.new(album).present
 end
-
-# For simplicity in the correction all the ruby classes were created into this same file
 
 class PhotoList
   def initialize(input, photo_item = nil)
