@@ -165,12 +165,12 @@ class Album
   protected
 
   def group_photos_by_city
-    @photos.each_with_index(&method(:add_to_city_group))
+    @photos.each(&method(:add_to_city_group))
   end
 
-  def add_to_city_group(photo, input_index)
+  def add_to_city_group(photo)
     @city_groups[photo[:city]] ||= []
-    @city_groups[photo[:city]] << photo.merge(input_index: input_index) #remove
+    @city_groups[photo[:city]] << photo
   end
 
   def sort_photos_by_date_within_group
