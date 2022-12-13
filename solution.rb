@@ -25,9 +25,8 @@ class PhotoList
 end
 
 class PhotoList::PhotoItem
-  def initialize(property = nil, format = nil)
-    @format = format || PhotoList::Format.new
-    @property = property || PhotoList::Property.new(@format)
+  def initialize(property = nil)
+    @property = property || PhotoList::Property.new
   end
 
   def build(item)
@@ -47,8 +46,8 @@ end
 
 class PhotoList::Property
   require 'date'
-  def initialize(format, factory = nil)
-    @format = format
+  def initialize(format = nil, factory = nil)
+    @format = format || PhotoList::Format.new
     @factory = factory || PhotoList::Property::Factory.new
   end
 
