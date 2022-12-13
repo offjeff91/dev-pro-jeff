@@ -45,7 +45,7 @@ class PhotoList::PhotoItem
 
   def build_item(item)
     item_values(item).map(&method(:build_property)).reduce(:merge)
-  rescue => validation_error
+  rescue PhotoList::ValidationError => validation_error
     { invalid?: true, validation_message: validation_error.message }
   end
 
@@ -106,7 +106,7 @@ end
 
 class PhotoList::Property::Default
   def build(value)
-    raise 'TOO LONG' if value.length > 7
+    raise PhotoList::ValidationError::TOOLONG  if value.length > 7
     value
   end
 end
@@ -124,6 +124,14 @@ class PhotoList::Format
 
   def name(index)
     FORMAT_LIST[index][:name]
+  end
+end
+
+class PhotoList::ValidationError < StandardError; end
+
+class PhotoList::ValidationError::TOOLONG < PhotoList::ValidationError
+  def message
+    'TOOLONG'
   end
 end
 
