@@ -44,9 +44,13 @@ class PhotoList::PhotoItem
   protected
 
   def build_item(item)
-    item_values(item).map(&method(:build_property)).reduce(:merge)
+    build_object(item)
   rescue PhotoList::ValidationError => validation_error
     invalid_response(validation_error)
+  end
+
+  def build_object(item)
+    item_values(item).map(&method(:build_property)).reduce(:merge)
   end
 
   def invalid_response(validation_error)
@@ -77,7 +81,8 @@ class PhotoList::Property
 
   def build_value(value, index)
     type = @format.type(index)
-    @factory.send(type).build(value)
+    property = @factory.send(type)
+    property.build(value)
   end
 end
 
