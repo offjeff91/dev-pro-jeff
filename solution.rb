@@ -30,12 +30,9 @@ class PhotoList
 end
 
 class PhotoList::PhotoItem
-  def initialize(key_value = nil)
-    @key_value = key_value || PhotoList::KeyValue.new([
-                                                        { name: :image_file, type: :file_name },
-                                                        { name: :city, type: :default },
-                                                        { name: :date, type: :date_time }
-                                                      ])
+  def initialize(key_value = nil, format = nil)
+    @format = format || PhotoList::Format.new
+    @key_value = key_value || PhotoList::KeyValue.new(@format)
   end
 
   def parse(item)
@@ -55,8 +52,8 @@ end
 
 class PhotoList::KeyValue
   require 'date'
-  def initialize(format_list)
-    @format_list = format_list
+  def initialize(format)
+    @format = format
   end
 
   def build(value, index)
@@ -66,35 +63,51 @@ class PhotoList::KeyValue
   protected
 
   def key(index)
-    @format_list[index][:name]
+    @format.name(index)
   end
 
   def build_value(value, index)
-    return date_time(value) if date_time?(index)
-    return file_name(value) if file_name?(index)
+    return date_time(value) if @format.date_time?(index)
+    return file_name(value) if @format.file_name?(index)
 
     value
-  end
-
-  def type(index)
-    @format_list[index][:type]
-  end
-
-  def date_time?(index)
-    type(index) == :date_time
   end
 
   def date_time(value)
     DateTime.parse(value)
   end
 
+  def file_name(value)
+    name, extension = value.split('.')
+    { name: name, extension: extension }
+  end
+end
+
+class PhotoList::Format
+  FORMAT_LIST = [
+    { name: :image_file, type: :file_name },
+    { name: :city, type: :default },
+    { name: :date, type: :date_time }
+  ].freeze
+
+  def type(index)
+    FORMAT_LIST[index][:type]
+  end
+
+  def date_time?(index)
+    type(index) == :date_time
+  end
+
   def file_name?(index)
     type(index) == :file_name
   end
 
-  def file_name(value)
-    name, extension = value.split('.')
-    { name: name, extension: extension }
+  def name(index)
+    FORMAT_LIST[index][:name]
+  end
+
+  def name(index)
+    FORMAT_LIST[index][:name]
   end
 end
 
