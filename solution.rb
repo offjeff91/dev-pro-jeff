@@ -109,6 +109,7 @@ end
 class PhotoList::Property::FileName
   def build(value)
     name, extension = value.split('.')
+    raise PhotoList::ValidationError::OnlyLetterOnFileNameError unless /^[A-z]+$/.match?(name)
     { name: name, extension: extension }
   end
 end
@@ -141,6 +142,12 @@ class PhotoList::ValidationError < StandardError; end
 class PhotoList::ValidationError::TOOLONG < PhotoList::ValidationError
   def message
     'TOOLONG'
+  end
+end
+
+class PhotoList::ValidationError::OnlyLetterOnFileNameError < PhotoList::ValidationError
+  def message
+    'file name should contain only letters'
   end
 end
 
