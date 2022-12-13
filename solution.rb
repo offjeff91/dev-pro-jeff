@@ -46,6 +46,10 @@ class PhotoList::PhotoItem
   def build_item(item)
     item_values(item).map(&method(:build_property)).reduce(:merge)
   rescue PhotoList::ValidationError => validation_error
+    invalid_response(validation_error)
+  end
+
+  def invalid_response(validation_error)
     { invalid?: true, validation_message: validation_error.message }
   end
 
