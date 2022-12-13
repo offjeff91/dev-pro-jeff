@@ -106,6 +106,7 @@ class PhotoList::Property::Base
   end
 
   private
+
   def validate(value)
     validations.each { |validation| raise validation[:error] unless validation[:rule].call(value) }
   end
@@ -113,34 +114,55 @@ end
 
 class PhotoList::Property::DateTime < PhotoList::Property::Base
   require 'date'
+
   protected
+
   def create(value)
     DateTime.parse(value)
   end
+
   def validations
     []
   end
 end
 
 class PhotoList::Property::FileName < PhotoList::Property::Base
-
   protected
+
   def create(value)
     name, extension = value.split('.')
     { name: name, extension: extension }
   end
 
   def validations
-    [
-      { rule: -> (value) { value.split('.').size == 2 }, error: PhotoList::ValidationError::FileNameFormat },
-      { rule: -> (value) { /^[A-z]+$/.match?(value.split('.').first) }, error: PhotoList::ValidationError::OnlyLetterOnFileNameError },
-      { rule: -> (value) { %w[jpg png jpeg].include?(value.split('.').last) }, error: PhotoList::ValidationError::ValidFileNameExtensionError }
-    ]
+    [format, only_letter, extension]
+  end
+
+  def format
+    {
+      rule: ->(value) { value.split('.').size == 2 },
+      error: PhotoList::ValidationError::FileNameFormat
+    }
+  end
+
+  def only_letter
+    {
+      rule: ->(value) { /^[A-z]+$/.match?(value.split('.').first) },
+      error: PhotoList::ValidationError::OnlyLetterOnFileNameError
+    }
+  end
+
+  def extension
+    {
+      rule: ->(value) { %w[jpg png jpeg].include?(value.split('.').last) },
+      error: PhotoList::ValidationError::ValidFileNameExtensionError
+    }
   end
 end
 
 class PhotoList::Property::Default < PhotoList::Property::Base
   protected
+
   def create(value)
     value
   end
