@@ -58,14 +58,8 @@ class PhotoList::Property
   protected
 
   def build_value(value, index)
-    return builder(:date_time).build(value) if @format.date_time?(index)
-    return builder(:file_name).build(value) if @format.file_name?(index)
-
-    builder(:default).build(value)
-  end
-
-  def builder(type)
-    @factory.send(type)
+    type = @format.type(index)
+    @factory.send(type).build(value)
   end
 end
 
