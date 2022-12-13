@@ -130,10 +130,6 @@ class PhotoList::Format
   def name(index)
     FORMAT_LIST[index][:name]
   end
-
-  def name(index)
-    FORMAT_LIST[index][:name]
-  end
 end
 
 class Album
