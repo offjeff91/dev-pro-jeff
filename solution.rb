@@ -2,9 +2,10 @@
 
 # For simplicity in the correction all the ruby classes were created into this same file
 def solution(s)
-  photos = PhotoList.new(s).parse
+  photo_list = PhotoList.new(s).parse
+  photos, errors = photo_list.values
   album = Album.new(photos).organize
-  AlbumDisplay.new(album).present
+  AlbumDisplay.new(album, errors).present
 end
 
 class PhotoList
@@ -14,13 +15,20 @@ class PhotoList
   end
 
   def parse
-    items.map { |item| @photo_item.build(item) }
+    {
+      photos: built_items.reject { |item| item[:invalid?] },
+      errors: built_items.select { |item| item[:invalid?] }
+    }
   end
 
   protected
 
+  def built_items
+    @built_items ||= items.map { |item, input_index| @photo_item.build(item, input_index) }
+  end
+
   def items
-    @input.split("\n").slice(0, 99)
+    @input.split("\n").slice(0, 99).each_with_index
   end
 end
 
@@ -29,11 +37,17 @@ class PhotoList::PhotoItem
     @property = property || PhotoList::Property.new
   end
 
-  def build(item)
-    item_values(item).map(&method(:build_property)).reduce(:merge)
+  def build(item, input_index)
+    build_item(item).merge(input_index: input_index)
   end
 
   protected
+
+  def build_item(item)
+    item_values(item).map(&method(:build_property)).reduce(:merge)
+  rescue => validation_error
+    { invalid?: true, validation_message: validation_error.message }
+  end
 
   def item_values(item)
     item.split(', ').each_with_index
@@ -92,6 +106,7 @@ end
 
 class PhotoList::Property::Default
   def build(value)
+    raise 'TOO LONG' if value.length > 7
     value
   end
 end
@@ -131,7 +146,7 @@ class Album
 
   def add_to_city_group(photo, input_index)
     @city_groups[photo[:city]] ||= []
-    @city_groups[photo[:city]] << photo.merge(input_index: input_index)
+    @city_groups[photo[:city]] << photo.merge(input_index: input_index) #remove
   end
 
   def sort_photos_by_date_within_group
@@ -148,8 +163,9 @@ class Album
 end
 
 class AlbumDisplay
-  def initialize(album, photo_display = nil)
+  def initialize(album, errors, photo_display = nil)
     @album = album
+    @errors = errors
     @photo_display = photo_display || AlbumDisplay::PhotoDisplay.new
   end
 
@@ -164,6 +180,10 @@ class AlbumDisplay
   protected
 
   def all_photos
+    photos.concat(@errors)
+  end
+
+  def photos
     photo_groups.map(&method(:photos_with_group_data)).flatten
   end
 
@@ -178,6 +198,7 @@ class AlbumDisplay
   end
 
   def show(photo)
+    return "Error: #{photo[:validation_message]}" if photo[:invalid?]
     @photo_display.present(photo)
   end
 end
