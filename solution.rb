@@ -54,23 +54,19 @@ class PhotoList::Property
   end
 
   def build(value, index)
-    { key(index) => build_value(value, index) }
+    { @format.name(index) => build_value(value, index) }
   end
 
   protected
 
-  def key(index)
-    @format.name(index)
-  end
-
   def build_value(value, index)
-    return factory(:date_time).build(value) if @format.date_time?(index)
-    return factory(:file_name).build(value) if @format.file_name?(index)
+    return builder(:date_time).build(value) if @format.date_time?(index)
+    return builder(:file_name).build(value) if @format.file_name?(index)
 
-    factory(:default).build(value)
+    builder(:default).build(value)
   end
 
-  def factory(type)
+  def builder(type)
     @factory.send(type)
   end
 end
