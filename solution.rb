@@ -201,7 +201,7 @@ class PhotoList::Validation
   def extension
     {
       rule: ->(value) { %w[jpg png jpeg].include?(value.split('.').last) },
-      error: PhotoList::ValidationError::ValidFileNameExtensionError
+      error: PhotoList::ValidationError::ImageExtensionError
     }
   end
 
@@ -225,7 +225,7 @@ class PhotoList::ValidationError::OnlyLetterError < PhotoList::ValidationError
   end
 end
 
-class PhotoList::ValidationError::ValidFileNameExtensionError < PhotoList::ValidationError
+class PhotoList::ValidationError::ImageExtensionError < PhotoList::ValidationError
   def message
     'allowed extensions: "jpg", "png" or "jpeg"'
   end
