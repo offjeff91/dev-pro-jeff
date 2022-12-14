@@ -165,7 +165,7 @@ end
 
 class PhotoList::Format
   FORMAT_LIST = [
-    { name: :image_file, type: :file_name, validations: [] },
+    { name: :image_file, type: :file_name, validations: [ :only_letter_in_file_name ] },
     { name: :city, type: :default, validations: [:only_letter] },
     { name: :date, type: :date_time, validations: [] }
   ].freeze
@@ -193,7 +193,7 @@ class PhotoList::Validation
 
   def only_letter
     {
-      rule: ->(value) { /^[A-z]+$/.match?(value.split('.').first) },
+      rule: ->(value) { /^[A-z]+$/.match?(value) },
       error: PhotoList::ValidationError::OnlyLetterError
     }
   end
@@ -202,6 +202,13 @@ class PhotoList::Validation
     {
       rule: ->(value) { %w[jpg png jpeg].include?(value.split('.').last) },
       error: PhotoList::ValidationError::ValidFileNameExtensionError
+    }
+  end
+
+  def only_letter_in_file_name
+    {
+      rule: ->(value) { /^[A-z]+$/.match?(value.split('.').first) },
+      error: PhotoList::ValidationError::OnlyLetterError
     }
   end
 end
