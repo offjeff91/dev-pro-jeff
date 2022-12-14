@@ -398,7 +398,7 @@ class AlbumDisplay
   end
 
   def present
-    all_photos.sort_by(&method(:input_index)).map(&method(:show))
+    all_photos.sort_by(&method(:input_index)).map(&method(:show)).join("\n")
   end
 
   def input_index(photo)
