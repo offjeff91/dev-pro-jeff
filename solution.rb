@@ -36,6 +36,49 @@ class PhotoList
   end
 end
 
+# For validations and formatting, active_model could have been used
+# But it was not used, so this code test doesn't need external libs to be executed
+class PhotoList::Format
+  FORMAT_LIST = [
+    {
+      name: :image_file,
+      type: :file_name,
+      validations: [ :only_letter_in_file_name ],
+      formats: [],
+      extensions: %w[jpg png jpeg]
+    },
+    {
+      name: :city,
+      type: :default,
+      validations: [:only_letter],
+      formats: [:capitalize]
+    },
+    {
+      name: :date,
+      type: :date_time,
+      validations: [:year_range],
+      year: { from: 2000, to: 2020 },
+      formats: []
+    }
+  ].freeze
+
+  def type(index)
+    FORMAT_LIST[index][:type]
+  end
+
+  def name(index)
+    FORMAT_LIST[index][:name]
+  end
+
+  def get(index)
+    FORMAT_LIST[index]
+  end
+
+  def size
+    FORMAT_LIST.size
+  end
+end
+
 class PhotoList::PhotoItem
   def initialize(format = nil, property = nil)
     @format = format || PhotoList::Format.new
@@ -181,47 +224,6 @@ class PhotoList::Property::Default < PhotoList::Property::Base
 
   def validations
     []
-  end
-end
-
-# For validations, I didn't want to use libs like active_model so the test doesn't have dependencies
-class PhotoList::Format
-  FORMAT_LIST = [
-    {
-      name: :image_file,
-      type: :file_name,
-      validations: [ :only_letter_in_file_name ], extensions: %w[jpg png jpeg],
-      formats: []
-    },
-    {
-      name: :city,
-      type: :default,
-      validations: [:only_letter],
-      formats: [:capitalize]
-    },
-    {
-      name: :date,
-      type: :date_time,
-      validations: [:year_range],
-      year: { from: 2000, to: 2020 },
-      formats: []
-    }
-  ].freeze
-
-  def type(index)
-    FORMAT_LIST[index][:type]
-  end
-
-  def name(index)
-    FORMAT_LIST[index][:name]
-  end
-
-  def get(index)
-    FORMAT_LIST[index]
-  end
-
-  def size
-    FORMAT_LIST.size
   end
 end
 
