@@ -85,8 +85,8 @@ class PhotoList::Property
   def build_value(value, index)
     type = @format.type(index)
     property = @factory.send(type)
-    format_item = @format.get(index)
-    property.build(value, format_item)
+    item_format = @format.get(index)
+    property.build(value, item_format)
   end
 end
 
@@ -109,16 +109,16 @@ class PhotoList::Property::Base
     @validation = validation || PhotoList::Validation.new
   end
 
-  def build(value, format_item)
-    validate(value, format_item)
+  def build(value, item_format)
+    validate(value, item_format)
     create(value)
   end
 
   private
 
-  def validate(value, format_item)
-    validations.concat(format_item[:validations]).each do |validation_key|
-      run_validation(validation_key, value, format_item[:name])
+  def validate(value, item_format)
+    validations.concat(item_format[:validations]).each do |validation_key|
+      run_validation(validation_key, value, item_format[:name])
     end
   end
 
