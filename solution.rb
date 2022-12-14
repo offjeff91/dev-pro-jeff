@@ -16,8 +16,8 @@ class PhotoList
 
   def parse
     {
-      photos: built_items.reject { |item| item[:invalid?] },
-      errors: built_items.select { |item| item[:invalid?] }
+      photos: built_items.reject(&method(:invalid?)),
+      errors: built_items.select(&method(:invalid?))
     }
   end
 
@@ -29,6 +29,10 @@ class PhotoList
 
   def items
     @input.split("\n").slice(0, 99).each_with_index
+  end
+
+  def invalid?(item)
+    item[:invalid?]
   end
 end
 
