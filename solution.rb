@@ -169,7 +169,7 @@ end
 
 class PhotoList::Format
   FORMAT_LIST = [
-    { name: :image_file, type: :file_name, validations: [ :only_letter_in_file_name ] },
+    { name: :image_file, type: :file_name, validations: [ :only_letter_in_file_name ], extensions: %w[jpg png jpeg] },
     { name: :city, type: :default, validations: [:only_letter] },
     { name: :date, type: :date_time, validations: [:year_range], year: { from: 2000, to: 2020 } }
   ].freeze
@@ -204,7 +204,7 @@ class PhotoList::Validation
 
   def extension
     {
-      rule: ->(value, item_format) { %w[jpg png jpeg].include?(value.split('.').last) },
+      rule: ->(value, item_format) { item_format[:extensions].include?(value.split('.').last) },
       error: PhotoList::ValidationError::ImageExtensionError
     }
   end
@@ -251,8 +251,12 @@ class PhotoList::ValidationError::OnlyLetterError < PhotoList::ValidationError
 end
 
 class PhotoList::ValidationError::ImageExtensionError < PhotoList::ValidationError
+  def initialize(item_format)
+    super
+    @item_format = item_format
+  end
   def message
-    'allowed extensions: "jpg", "png" or "jpeg"'
+    "allowed extensions: #{@item_format[:extensions]}"
   end
 end
 
