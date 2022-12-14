@@ -173,6 +173,7 @@ class PhotoList::Property::Default < PhotoList::Property::Base
   end
 end
 
+# For validations, I didn't want to use libs like active_model so the test doesn't have dependencies
 class PhotoList::Format
   FORMAT_LIST = [
     { name: :image_file, type: :file_name, validations: [ :only_letter_in_file_name ], extensions: %w[jpg png jpeg] },
