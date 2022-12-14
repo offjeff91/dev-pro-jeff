@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-# For simplicity in the correction all the ruby classes were created into this same file
+# To facilitate the execution of the code all classes on which the solution depends were created in this same file
 def solution(s)
   photo_list = PhotoList.new(s).parse
   photos, errors = photo_list.values
@@ -43,7 +43,7 @@ class PhotoList::Format
     {
       name: :image_file,
       type: :file_name,
-      validations: [ :only_letter_in_file_name ],
+      validations: [:only_letter_in_file_name],
       formats: [],
       extensions: %w[jpg png jpeg]
     },
@@ -51,7 +51,7 @@ class PhotoList::Format
       name: :city,
       type: :default,
       validations: [:only_letter],
-      formats: [:capitalize, :slice],
+      formats: %i[capitalize slice],
       length: { min: 1, max: 20 }
     },
     {
@@ -212,7 +212,7 @@ class PhotoList::Property::FileName < PhotoList::Property::Base
   end
 
   def validations
-    [:file_name_format, :extension]
+    %i[file_name_format extension]
   end
 end
 
@@ -231,14 +231,14 @@ end
 class PhotoList::Validation
   def file_name_format
     {
-      rule: ->(value, item_format) { value.split('.').size == 2 },
+      rule: ->(value, _item_format) { value.split('.').size == 2 },
       error: PhotoList::ValidationError::FileNameFormatError
     }
   end
 
   def only_letter
     {
-      rule: ->(value, item_format) { /^[A-z]+$/.match?(value) },
+      rule: ->(value, _item_format) { /^[A-z]+$/.match?(value) },
       error: PhotoList::ValidationError::OnlyLetterError
     }
   end
@@ -252,14 +252,14 @@ class PhotoList::Validation
 
   def only_letter_in_file_name
     {
-      rule: ->(value, item_format) { /^[A-z]+$/.match?(value.split('.').first) },
+      rule: ->(value, _item_format) { /^[A-z]+$/.match?(value.split('.').first) },
       error: PhotoList::ValidationError::OnlyLetterError
     }
   end
 
   def date_time_format
     {
-      rule: ->(value, item_format) do
+      rule: lambda do |value, _item_format|
         regex = /[0-9]{4}-(0[1-9]|1[0-2])-(0[1-9]|[1-2][0-9]|3[0-1]) (2[0-3]|[01][0-9]):[0-5][0-9]:[0-5][0-9]/
         regex.match?(value)
       end,
@@ -269,7 +269,7 @@ class PhotoList::Validation
 
   def year_range
     {
-      rule: ->(value, item_format) do
+      rule: lambda do |value, item_format|
         from, to = item_format[:year].values
         Date.parse(value).year.between?(from, to)
       end,
@@ -281,12 +281,13 @@ end
 class PhotoList::Formatter
   def capitalize
     {
-      action: ->(value, item_format) { value.capitalize }
+      action: ->(value, _item_format) { value.capitalize }
     }
   end
+
   def slice
     {
-      action: ->(value, item_format) do
+      action: lambda do |value, item_format|
         min, max = item_format[:length].values
         value.slice(min - 1, max)
       end
@@ -318,6 +319,7 @@ class PhotoList::ValidationError::ImageExtensionError < PhotoList::ValidationErr
     super
     @item_format = item_format
   end
+
   def message
     "allowed extensions: #{@item_format[:extensions]}"
   end
@@ -328,6 +330,7 @@ class PhotoList::ValidationError::FileNameFormatError < PhotoList::ValidationErr
     super
     @item_format = item_format
   end
+
   def message
     "#{@item_format[:name]} expects <name>.<extension> format"
   end
@@ -344,6 +347,7 @@ class PhotoList::ValidationError::YearRangeError < PhotoList::ValidationError
     super
     @item_format = item_format
   end
+
   def message
     from, to = @item_format[:year].values
 
