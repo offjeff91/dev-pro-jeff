@@ -362,6 +362,7 @@ class Album
   end
 
   def organize
+    return {} if @photos.size == 0
     group_photos_by_city
     sort_photos_by_date_within_group
   end
