@@ -37,8 +37,9 @@ class PhotoList
 end
 
 class PhotoList::PhotoItem
-  def initialize(property = nil)
-    @property = property || PhotoList::Property.new
+  def initialize(format = nil, property = nil)
+    @format = format || PhotoList::Format.new
+    @property = property || PhotoList::Property.new(@format)
   end
 
   def build(item, input_index)
@@ -54,6 +55,7 @@ class PhotoList::PhotoItem
   end
 
   def build_object(item)
+    validate_structure(item)
     item_values(item).map(&method(:build_property)).reduce(:merge)
   end
 
@@ -62,17 +64,21 @@ class PhotoList::PhotoItem
   end
 
   def item_values(item)
-    item.split(',').each_with_index
+    item.split(',').slice(0, @format.size).each_with_index
   end
 
   def build_property(value, index)
     @property.build(value.strip, index)
   end
+
+  def validate_structure(item)
+    raise PhotoList::ValidationError::FormatError if item_values(item).size < @format.size
+  end
 end
 
 class PhotoList::Property
-  def initialize(format = nil, factory = nil)
-    @format = format || PhotoList::Format.new
+  def initialize(format, factory = nil)
+    @format = format
     @factory = factory || PhotoList::Property::Factory.new
   end
 
@@ -185,6 +191,10 @@ class PhotoList::Format
   def get(index)
     FORMAT_LIST[index]
   end
+
+  def size
+    FORMAT_LIST.size
+  end
 end
 
 class PhotoList::Validation
@@ -238,6 +248,12 @@ class PhotoList::Validation
 end
 
 class PhotoList::ValidationError < StandardError; end
+
+class PhotoList::ValidationError::FormatError < PhotoList::ValidationError
+  def message
+    'line has no basic well-formed structure'
+  end
+end
 
 class PhotoList::ValidationError::OnlyLetterError < PhotoList::ValidationError
   def initialize(item_format)
