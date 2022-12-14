@@ -167,7 +167,7 @@ class PhotoList::Format
   FORMAT_LIST = [
     { name: :image_file, type: :file_name, validations: [ :only_letter_in_file_name ] },
     { name: :city, type: :default, validations: [:only_letter] },
-    { name: :date, type: :date_time, validations: [] }
+    { name: :date, type: :date_time, validations: [:year_range] }
   ].freeze
 
   def type(index)
@@ -187,7 +187,7 @@ class PhotoList::Validation
   def file_name_format
     {
       rule: ->(value) { value.split('.').size == 2 },
-      error: PhotoList::ValidationError::FileNameFormat
+      error: PhotoList::ValidationError::FileNameFormatError
     }
   end
 
@@ -221,6 +221,15 @@ class PhotoList::Validation
       error: PhotoList::ValidationError::DateTimeFormatError
     }
   end
+
+  def year_range
+    {
+      rule: ->(value) do
+        Date.parse(value).year.between?(2000, 2020)
+      end,
+      error: PhotoList::ValidationError::YearRangeError
+    }
+  end
 end
 
 class PhotoList::ValidationError < StandardError; end
@@ -241,7 +250,7 @@ class PhotoList::ValidationError::ImageExtensionError < PhotoList::ValidationErr
   end
 end
 
-class PhotoList::ValidationError::FileNameFormat < PhotoList::ValidationError
+class PhotoList::ValidationError::FileNameFormatError < PhotoList::ValidationError
   def initialize(field)
     @field = field
   end
@@ -253,6 +262,12 @@ end
 class PhotoList::ValidationError::DateTimeFormatError < PhotoList::ValidationError
   def message
     'date time expects the format yyyy-mm-dd hh:mm:ss'
+  end
+end
+
+class PhotoList::ValidationError::YearRangeError < PhotoList::ValidationError
+  def message
+    'date time expects year from 2000 to 2020'
   end
 end
 
