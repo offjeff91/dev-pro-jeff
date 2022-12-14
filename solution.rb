@@ -134,7 +134,7 @@ class PhotoList::Property::DateTime < PhotoList::Property::Base
   end
 
   def validations
-    []
+    [:date_time_format]
   end
 end
 
@@ -211,6 +211,16 @@ class PhotoList::Validation
       error: PhotoList::ValidationError::OnlyLetterError
     }
   end
+
+  def date_time_format
+    {
+      rule: ->(value) do
+        regex = /[0-9]{4}-(0[1-9]|1[0-2])-(0[1-9]|[1-2][0-9]|3[0-1]) (2[0-3]|[01][0-9]):[0-5][0-9]:[0-5][0-9]/
+        regex.match?(value)
+      end,
+      error: PhotoList::ValidationError::DateTimeFormatError
+    }
+  end
 end
 
 class PhotoList::ValidationError < StandardError; end
@@ -237,6 +247,12 @@ class PhotoList::ValidationError::FileNameFormat < PhotoList::ValidationError
   end
   def message
     "#{@field} expects <name>.<extension> format"
+  end
+end
+
+class PhotoList::ValidationError::DateTimeFormatError < PhotoList::ValidationError
+  def message
+    'date time expects the format yyyy-mm-dd hh:mm:ss'
   end
 end
 
