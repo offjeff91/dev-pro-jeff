@@ -9,6 +9,11 @@ Jefferson Fernandes
 
 https://www.linkedin.com/in/offjeff91/
 
+## Challenge
+
+### Solution
+The solution is inside the ```solution.rb``` file
+
 ## Code
 
 ### Ruby version
