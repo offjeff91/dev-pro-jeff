@@ -232,8 +232,11 @@ class PhotoList::ValidationError::ValidFileNameExtensionError < PhotoList::Valid
 end
 
 class PhotoList::ValidationError::FileNameFormat < PhotoList::ValidationError
+  def initialize(field)
+    @field = field
+  end
   def message
-    'file name expects <name>.<extension> format'
+    "#{@field} expects <name>.<extension> format"
   end
 end
 
