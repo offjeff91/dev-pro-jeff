@@ -111,13 +111,15 @@ class PhotoList::Property::Factory
 end
 
 class PhotoList::Property::Base
-  def initialize(validation = nil)
+  def initialize(validation = nil, formatter = nil)
     @validation = validation || PhotoList::Validation.new
+    @formatter = formatter || PhotoList::Formatter.new
   end
 
   def build(value, item_format)
     validate(value, item_format)
-    create(value)
+    item = create(value)
+    format(item, item_format)
   end
 
   private
@@ -131,6 +133,15 @@ class PhotoList::Property::Base
   def run_validation(validation_key, value, item_format)
     validation_rule = @validation.send(validation_key)
     raise validation_rule[:error], item_format unless validation_rule[:rule].call(value, item_format)
+  end
+
+  def format(item, item_format)
+    value = item
+    item_format[:formats].each do |format_key|
+      format_action = @formatter.send(format_key)
+      value = format_action[:action].call(value, item_format)
+    end
+    value
   end
 end
 
@@ -176,9 +187,25 @@ end
 # For validations, I didn't want to use libs like active_model so the test doesn't have dependencies
 class PhotoList::Format
   FORMAT_LIST = [
-    { name: :image_file, type: :file_name, validations: [ :only_letter_in_file_name ], extensions: %w[jpg png jpeg] },
-    { name: :city, type: :default, validations: [:only_letter] },
-    { name: :date, type: :date_time, validations: [:year_range], year: { from: 2000, to: 2020 } }
+    {
+      name: :image_file,
+      type: :file_name,
+      validations: [ :only_letter_in_file_name ], extensions: %w[jpg png jpeg],
+      formats: []
+    },
+    {
+      name: :city,
+      type: :default,
+      validations: [:only_letter],
+      formats: [:capitalize]
+    },
+    {
+      name: :date,
+      type: :date_time,
+      validations: [:year_range],
+      year: { from: 2000, to: 2020 },
+      formats: []
+    }
   ].freeze
 
   def type(index)
@@ -244,6 +271,14 @@ class PhotoList::Validation
         Date.parse(value).year.between?(from, to)
       end,
       error: PhotoList::ValidationError::YearRangeError
+    }
+  end
+end
+
+class PhotoList::Formatter
+  def capitalize
+    {
+      action: ->(value, item_format) { value.capitalize }
     }
   end
 end
