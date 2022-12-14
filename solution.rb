@@ -171,7 +171,7 @@ class PhotoList::Format
   FORMAT_LIST = [
     { name: :image_file, type: :file_name, validations: [ :only_letter_in_file_name ] },
     { name: :city, type: :default, validations: [:only_letter] },
-    { name: :date, type: :date_time, validations: [:year_range] }
+    { name: :date, type: :date_time, validations: [:year_range], year: { from: 2000, to: 2020 } }
   ].freeze
 
   def type(index)
@@ -229,7 +229,8 @@ class PhotoList::Validation
   def year_range
     {
       rule: ->(value, item_format) do
-        Date.parse(value).year.between?(2000, 2020)
+        from, to = item_format[:year].values
+        Date.parse(value).year.between?(from, to)
       end,
       error: PhotoList::ValidationError::YearRangeError
     }
@@ -240,6 +241,7 @@ class PhotoList::ValidationError < StandardError; end
 
 class PhotoList::ValidationError::OnlyLetterError < PhotoList::ValidationError
   def initialize(item_format)
+    super
     @item_format = item_format
   end
 
@@ -256,6 +258,7 @@ end
 
 class PhotoList::ValidationError::FileNameFormatError < PhotoList::ValidationError
   def initialize(item_format)
+    super
     @item_format = item_format
   end
   def message
@@ -270,8 +273,14 @@ class PhotoList::ValidationError::DateTimeFormatError < PhotoList::ValidationErr
 end
 
 class PhotoList::ValidationError::YearRangeError < PhotoList::ValidationError
+  def initialize(item_format)
+    super
+    @item_format = item_format
+  end
   def message
-    'date time expects year from 2000 to 2020'
+    from, to = @item_format[:year].values
+
+    "date time expects year from #{from} to #{to}"
   end
 end
 
