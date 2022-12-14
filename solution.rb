@@ -118,13 +118,13 @@ class PhotoList::Property::Base
 
   def validate(value, item_format)
     validations.concat(item_format[:validations]).each do |validation_key|
-      run_validation(validation_key, value, item_format[:name])
+      run_validation(validation_key, value, item_format)
     end
   end
 
-  def run_validation(validation_key, value, name)
+  def run_validation(validation_key, value, item_format)
     validation_rule = @validation.send(validation_key)
-    raise validation_rule[:error], name unless validation_rule[:rule].call(value)
+    raise validation_rule[:error], item_format unless validation_rule[:rule].call(value)
   end
 end
 
@@ -239,12 +239,12 @@ end
 class PhotoList::ValidationError < StandardError; end
 
 class PhotoList::ValidationError::OnlyLetterError < PhotoList::ValidationError
-  def initialize(field)
-    @field = field
+  def initialize(item_format)
+    @item_format = item_format
   end
 
   def message
-    "#{@field} should contain only letters"
+    "#{@item_format[:name]} should contain only letters"
   end
 end
 
@@ -255,11 +255,11 @@ class PhotoList::ValidationError::ImageExtensionError < PhotoList::ValidationErr
 end
 
 class PhotoList::ValidationError::FileNameFormatError < PhotoList::ValidationError
-  def initialize(field)
-    @field = field
+  def initialize(item_format)
+    @item_format = item_format
   end
   def message
-    "#{@field} expects <name>.<extension> format"
+    "#{@item_format[:name]} expects <name>.<extension> format"
   end
 end
 
