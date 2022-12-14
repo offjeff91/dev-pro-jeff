@@ -9,7 +9,6 @@ Jefferson Fernandes
 
 https://www.linkedin.com/in/offjeff91/
 
-
 ## Code
 
 ### Ruby version
