@@ -124,7 +124,7 @@ class PhotoList::Property::Base
 
   def run_validation(validation_key, value, item_format)
     validation_rule = @validation.send(validation_key)
-    raise validation_rule[:error], item_format unless validation_rule[:rule].call(value)
+    raise validation_rule[:error], item_format unless validation_rule[:rule].call(value, item_format)
   end
 end
 
@@ -190,35 +190,35 @@ end
 class PhotoList::Validation
   def file_name_format
     {
-      rule: ->(value) { value.split('.').size == 2 },
+      rule: ->(value, item_format) { value.split('.').size == 2 },
       error: PhotoList::ValidationError::FileNameFormatError
     }
   end
 
   def only_letter
     {
-      rule: ->(value) { /^[A-z]+$/.match?(value) },
+      rule: ->(value, item_format) { /^[A-z]+$/.match?(value) },
       error: PhotoList::ValidationError::OnlyLetterError
     }
   end
 
   def extension
     {
-      rule: ->(value) { %w[jpg png jpeg].include?(value.split('.').last) },
+      rule: ->(value, item_format) { %w[jpg png jpeg].include?(value.split('.').last) },
       error: PhotoList::ValidationError::ImageExtensionError
     }
   end
 
   def only_letter_in_file_name
     {
-      rule: ->(value) { /^[A-z]+$/.match?(value.split('.').first) },
+      rule: ->(value, item_format) { /^[A-z]+$/.match?(value.split('.').first) },
       error: PhotoList::ValidationError::OnlyLetterError
     }
   end
 
   def date_time_format
     {
-      rule: ->(value) do
+      rule: ->(value, item_format) do
         regex = /[0-9]{4}-(0[1-9]|1[0-2])-(0[1-9]|[1-2][0-9]|3[0-1]) (2[0-3]|[01][0-9]):[0-5][0-9]:[0-5][0-9]/
         regex.match?(value)
       end,
@@ -228,7 +228,7 @@ class PhotoList::Validation
 
   def year_range
     {
-      rule: ->(value) do
+      rule: ->(value, item_format) do
         Date.parse(value).year.between?(2000, 2020)
       end,
       error: PhotoList::ValidationError::YearRangeError
