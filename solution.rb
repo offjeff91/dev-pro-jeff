@@ -100,6 +100,10 @@ class PhotoList::Property::Factory
 end
 
 class PhotoList::Property::Base
+  def initialize(validation = nil)
+    @validation = validation || PhotoList::Validation.new
+  end
+
   def build(value)
     validate(value)
     create(value)
@@ -108,7 +112,10 @@ class PhotoList::Property::Base
   private
 
   def validate(value)
-    validations.each { |validation| raise validation[:error] unless validation[:rule].call(value) }
+    validations.each do |validation_key|
+      validation_rule = @validation.send(validation_key)
+      raise validation_rule[:error] unless validation_rule[:rule].call(value)
+    end
   end
 end
 
@@ -135,28 +142,7 @@ class PhotoList::Property::FileName < PhotoList::Property::Base
   end
 
   def validations
-    [format, only_letter, extension]
-  end
-
-  def format
-    {
-      rule: ->(value) { value.split('.').size == 2 },
-      error: PhotoList::ValidationError::FileNameFormat
-    }
-  end
-
-  def only_letter
-    {
-      rule: ->(value) { /^[A-z]+$/.match?(value.split('.').first) },
-      error: PhotoList::ValidationError::OnlyLetterOnFileNameError
-    }
-  end
-
-  def extension
-    {
-      rule: ->(value) { %w[jpg png jpeg].include?(value.split('.').last) },
-      error: PhotoList::ValidationError::ValidFileNameExtensionError
-    }
+    [:file_name_format, :extension]
   end
 end
 
@@ -185,6 +171,29 @@ class PhotoList::Format
 
   def name(index)
     FORMAT_LIST[index][:name]
+  end
+end
+
+class PhotoList::Validation
+  def file_name_format
+    {
+      rule: ->(value) { value.split('.').size == 2 },
+      error: PhotoList::ValidationError::FileNameFormat
+    }
+  end
+
+  def only_letter
+    {
+      rule: ->(value) { /^[A-z]+$/.match?(value.split('.').first) },
+      error: PhotoList::ValidationError::OnlyLetterOnFileNameError
+    }
+  end
+
+  def extension
+    {
+      rule: ->(value) { %w[jpg png jpeg].include?(value.split('.').last) },
+      error: PhotoList::ValidationError::ValidFileNameExtensionError
+    }
   end
 end
 
