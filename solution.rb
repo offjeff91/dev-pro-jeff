@@ -81,7 +81,8 @@ class PhotoList::Property
   def build_value(value, index)
     type = @format.type(index)
     property = @factory.send(type)
-    property.build(value)
+    format_item = @format.get(index)
+    property.build(value, format_item)
   end
 end
 
@@ -104,18 +105,22 @@ class PhotoList::Property::Base
     @validation = validation || PhotoList::Validation.new
   end
 
-  def build(value)
-    validate(value)
+  def build(value, format_item)
+    validate(value, format_item)
     create(value)
   end
 
   private
 
-  def validate(value)
-    validations.each do |validation_key|
-      validation_rule = @validation.send(validation_key)
-      raise validation_rule[:error] unless validation_rule[:rule].call(value)
+  def validate(value, format_item)
+    validations.concat(format_item[:validations]).each do |validation_key|
+      run_validation(validation_key, value, format_item[:name])
     end
+  end
+
+  def run_validation(validation_key, value, name)
+    validation_rule = @validation.send(validation_key)
+    raise validation_rule[:error], name unless validation_rule[:rule].call(value)
   end
 end
 
@@ -160,9 +165,9 @@ end
 
 class PhotoList::Format
   FORMAT_LIST = [
-    { name: :image_file, type: :file_name },
-    { name: :city, type: :default },
-    { name: :date, type: :date_time }
+    { name: :image_file, type: :file_name, validations: [] },
+    { name: :city, type: :default, validations: [:only_letter] },
+    { name: :date, type: :date_time, validations: [] }
   ].freeze
 
   def type(index)
@@ -171,6 +176,10 @@ class PhotoList::Format
 
   def name(index)
     FORMAT_LIST[index][:name]
+  end
+
+  def get(index)
+    FORMAT_LIST[index]
   end
 end
 
@@ -185,7 +194,7 @@ class PhotoList::Validation
   def only_letter
     {
       rule: ->(value) { /^[A-z]+$/.match?(value.split('.').first) },
-      error: PhotoList::ValidationError::OnlyLetterOnFileNameError
+      error: PhotoList::ValidationError::OnlyLetterError
     }
   end
 
@@ -199,9 +208,13 @@ end
 
 class PhotoList::ValidationError < StandardError; end
 
-class PhotoList::ValidationError::OnlyLetterOnFileNameError < PhotoList::ValidationError
+class PhotoList::ValidationError::OnlyLetterError < PhotoList::ValidationError
+  def initialize(field)
+    @field = field
+  end
+
   def message
-    'file name should contain only letters'
+    "#{@field} should contain only letters"
   end
 end
 
