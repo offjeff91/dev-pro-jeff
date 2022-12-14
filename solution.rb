@@ -51,7 +51,8 @@ class PhotoList::Format
       name: :city,
       type: :default,
       validations: [:only_letter],
-      formats: [:capitalize]
+      formats: [:capitalize, :slice],
+      length: { min: 1, max: 20 }
     },
     {
       name: :date,
@@ -281,6 +282,14 @@ class PhotoList::Formatter
   def capitalize
     {
       action: ->(value, item_format) { value.capitalize }
+    }
+  end
+  def slice
+    {
+      action: ->(value, item_format) do
+        min, max = item_format[:length].values
+        value.slice(min - 1, max)
+      end
     }
   end
 end
